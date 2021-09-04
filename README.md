@@ -1,7 +1,7 @@
 # `mdbook-snips`
 
 A [mdbook](https://github.com/rust-lang/mdBook/) preprocessor to add `// --snip--`
-(or similar) before all "blocks" of hidden lines in rust blocks in a mdbook book,
+(or similar) before all "blocks" of hidden lines in rust blocks in a mdbook,
 making it very clear that there is some hidden code there.
 
 (mdbook calls them boring lines).
@@ -121,3 +121,9 @@ Will give you:
 
 fn main() {}
 ```
+
+## License
+
+`mdbook-snips` is distributed under the terms of both the MIT license and the Apache License (Version 2.0).
+
+See the [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) files in this repository for more information.

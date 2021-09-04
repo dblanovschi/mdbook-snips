@@ -7,8 +7,8 @@ use std::io;
 use std::process;
 
 pub fn make_app() -> App<'static> {
-    App::new("nop-preprocessor")
-        .about("A mdbook preprocessor which does precisely nothing")
+    App::new("mdbook-snips")
+        .about("Preprocessor to add markers for hidden lines in rust blocks")
         .subcommand(
             App::new("supports")
                 .arg(Arg::new("renderer").required(true))
