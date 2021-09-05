@@ -149,6 +149,10 @@ fn main () {
 
 - I would also recommend setting `for_imports=false`
 
+- Have an empty line between uses and all the other items in a block.
+With `for_imports=false`, the other items might get hiddden.
+Remember `for_imports` only looks if the first line starts with `"use "`.
+
 ## License
 
 `mdbook-snips` is distributed under the terms of both the MIT license and the Apache License (Version 2.0).
