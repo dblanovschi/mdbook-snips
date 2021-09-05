@@ -34,6 +34,8 @@ fn main() {
 }
 ```
 
+To get a feeling of what it looks like, the [robespierre book](https://dblanovschi.github.io/robespierre) uses this.
+
 Usage:
 
 ```bash
@@ -121,6 +123,31 @@ Will give you:
 
 fn main() {}
 ```
+
+## Rules of thumb
+- Prefer having hidden blocks of code at least 1 always-visible line away from any other visible code, unless imports.
+
+E.g. prefer this:
+```rust
+# fn f() {}
+
+fn main() {
+#     let a = f();
+
+    let b = 1;
+}
+```
+
+Instead of this:
+```rust
+# fn f() {}
+fn main () {
+#     let a = f();
+    let b = 1;
+}
+```
+
+- I would also recommend setting `for_imports=false`
 
 ## License
 
