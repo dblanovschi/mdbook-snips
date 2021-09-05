@@ -125,7 +125,7 @@ fn main() {}
 ```
 
 ## Rules of thumb
-- Prefer having hidden blocks of code at least 1 always-visible line away from any other visible code, unless imports.
+- Prefer having hidden blocks of code at least 1 always-visible line away from any other visible code, unless imports, or first or last lines of blocks.
 
 E.g. prefer this:
 ```rust
