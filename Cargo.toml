@@ -1,7 +1,7 @@
 [package]
 name = "mdbook-snips"
 description = "Markers for hidden lines in rust blocks within an mdbook"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 readme = "README.md"
 repository = "https://github.com/dblanovschi/mdbook-snips"
