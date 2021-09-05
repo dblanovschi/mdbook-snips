@@ -9,7 +9,7 @@ use mdbook::{
 use regex::Regex;
 use serde::Deserialize;
 
-#[derive(Deserialize, Default, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct MdbookSnipsConfig {
     #[serde(default = "true_f")]
     for_imports: bool,
@@ -26,11 +26,25 @@ fn true_f() -> bool {
 fn default_snip() -> String {
     String::from("// --snip--")
 }
+
+impl Default for MdbookSnipsConfig {
+    fn default() -> Self {
+        Self {
+            for_imports: true,
+            for_end_of_block: false,
+            snip_text: default_snip(),
+        }
+    }
+}
 pub struct MdbookSnips;
 
 lazy_static::lazy_static! {
     // from https://github.com/rust-lang/mdBook/blob/d22299d9985eafc87e6103974700a3eb8e24d73d/src/renderer/html_handlebars/hbs_renderer.rs#L886
     static ref BORING_LINES_REGEX: Regex = Regex::new(r"^(\s*)#(.?)(.*)$").unwrap();
+
+    static ref IS_USE_STMT: Regex = Regex::new(
+        r#"^\s*(pub(\s+|\s*\((crate|in\s+(::)?[a-zA-Z_][a-zA-Z0-9_]*(::[a-zA-Z_][a-zA-Z0-9_]*)*)\)\s*))?use\s+"#
+    ).unwrap();
 }
 
 fn space_width(ch: char) -> usize {
@@ -47,10 +61,10 @@ impl MdbookSnips {
         MdbookSnips
     }
 
-    fn handle_chapter_content(
+    fn handle_content(
         &self,
         cfg: &MdbookSnipsConfig,
-        chapter: &mut Chapter,
+        content: &mut String,
     ) -> Result<(), std::fmt::Error> {
         #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
         enum InCodeState {
@@ -69,7 +83,7 @@ impl MdbookSnips {
         let mut in_code = InCodeState::None;
         let mut current_block = None;
         let mut boring_blocks = vec![]; // line indices to add `// --snip--` before
-        for (line_ind, line) in chapter.content.lines().enumerate() {
+        for (line_ind, line) in content.lines().enumerate() {
             if line == "```rust" || line.starts_with("```rust,") {
                 in_code = InCodeState::Rust;
             } else if line == "```" {
@@ -111,16 +125,16 @@ impl MdbookSnips {
             if BORING_LINES_REGEX.is_match(line) {
                 if current_block.is_none() {
                     let boring_line = &line[1..];
-                    if !boring_line.starts_with('[') { // protect against attribute and derive macros
+                    if !boring_line.starts_with('[') {
+                        // protect against attribute and derive macros
                         let boring_line = boring_line.strip_prefix(" ").unwrap_or(boring_line);
                         let whitespace_chars = boring_line
                             .chars()
                             .take_while(|it| it.is_whitespace())
                             .map(space_width)
                             .sum();
-                        let is_import = boring_line
-                            .trim_start_matches(char::is_whitespace)
-                            .starts_with("use ");
+                        let skip_ws = boring_line.trim_start_matches(char::is_whitespace);
+                        let is_import = IS_USE_STMT.is_match(skip_ws);
                         current_block = Some(BoringBlockData {
                             start_line_index: line_ind,
                             indentation_spaces: whitespace_chars,
@@ -148,29 +162,31 @@ impl MdbookSnips {
             return Ok(());
         }
 
-        let content = std::mem::replace(&mut chapter.content, String::new());
+        let old_content = std::mem::replace(content, String::new());
 
         let mut current_boring_block_index = 0_usize;
-        for (line_ind, line) in content.lines().enumerate() {
+        for (line_ind, line) in old_content.lines().enumerate() {
             if current_boring_block_index < boring_blocks.len()
                 && line_ind == boring_blocks[current_boring_block_index].start_line_index
             {
                 let indent = boring_blocks[current_boring_block_index].indentation_spaces;
-                writeln!(
-                    &mut chapter.content,
-                    "{:indent$}{}",
-                    "",
-                    cfg.snip_text,
-                    indent = indent
-                )?;
+                writeln!(content, "{:indent$}{}", "", cfg.snip_text, indent = indent)?;
 
                 current_boring_block_index += 1;
             }
 
-            writeln!(&mut chapter.content, "{}", line)?;
+            writeln!(content, "{}", line)?;
         }
 
         Ok(())
+    }
+
+    fn handle_chapter_content(
+        &self,
+        cfg: &MdbookSnipsConfig,
+        chapter: &mut Chapter,
+    ) -> Result<(), std::fmt::Error> {
+        self.handle_content(cfg, &mut chapter.content)
     }
 
     fn handle(&self, cfg: &MdbookSnipsConfig, item: &mut BookItem) -> Result<(), std::fmt::Error> {
@@ -213,3 +229,6 @@ impl Preprocessor for MdbookSnips {
         true
     }
 }
+
+#[cfg(test)]
+mod tests;
