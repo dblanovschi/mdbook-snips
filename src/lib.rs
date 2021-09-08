@@ -124,9 +124,9 @@ impl MdbookSnips {
 
             if BORING_LINES_REGEX.is_match(line) {
                 if current_block.is_none() {
-                    let boring_line = &line[1..];
-                    if !boring_line.starts_with('[') {
-                        // protect against attribute and derive macros
+                    let boring_line = &line.trim_start()[1..];
+                    // protect against attribute and derive macros
+                    if !boring_line.starts_with('[') && !boring_line.starts_with("![") {
                         let boring_line = boring_line.strip_prefix(" ").unwrap_or(boring_line);
                         let whitespace_chars = boring_line
                             .chars()
