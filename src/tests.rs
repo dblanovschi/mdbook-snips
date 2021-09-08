@@ -170,3 +170,47 @@ fn respects_indentation() {
         )
     )
 }
+
+#[test]
+fn ignores_whitespace_before_hash() {
+    let mut content = String::from(indoc!(
+        r#"
+            # Hello
+            ```
+            # fn f() {}
+
+            fn main() {
+                # let x = f();
+
+                x
+            }
+            ```
+            "#
+    ));
+
+    let config = MdbookSnipsConfig::default();
+
+    let preprocessor = MdbookSnips::new();
+
+    assert_eq!(Ok(()), preprocessor.handle_content(&config, &mut content));
+
+    assert_eq!(
+        &content,
+        indoc!(
+            r#"
+            # Hello
+            ```
+            // --snip--
+            # fn f() {}
+
+            fn main() {
+                // --snip--
+                # let x = f();
+
+                x
+            }
+            ```
+            "#
+        )
+    )
+}

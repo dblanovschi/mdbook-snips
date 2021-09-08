@@ -128,11 +128,18 @@ impl MdbookSnips {
                     // protect against attribute and derive macros
                     if !boring_line.starts_with('[') && !boring_line.starts_with("![") {
                         let boring_line = boring_line.strip_prefix(" ").unwrap_or(boring_line);
-                        let whitespace_chars = boring_line
+                        let before_hash_whitespace_chars = line
                             .chars()
                             .take_while(|it| it.is_whitespace())
                             .map(space_width)
-                            .sum();
+                            .sum::<usize>();
+                        let after_hash_whitespace_chars = boring_line
+                            .chars()
+                            .take_while(|it| it.is_whitespace())
+                            .map(space_width)
+                            .sum::<usize>();
+                        let whitespace_chars =
+                            before_hash_whitespace_chars + after_hash_whitespace_chars;
                         let skip_ws = boring_line.trim_start_matches(char::is_whitespace);
                         let is_import = IS_USE_STMT.is_match(skip_ws);
                         current_block = Some(BoringBlockData {
