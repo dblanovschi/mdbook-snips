@@ -84,7 +84,7 @@ impl MdbookSnips {
         let mut current_block = None;
         let mut boring_blocks = vec![]; // line indices to add `// --snip--` before
         for (line_ind, line) in content.lines().enumerate() {
-            if line == "```rust" || line.starts_with("```rust,") {
+            if line == "```rust" || line.starts_with("```rust ,") || line.starts_with("```rust,") {
                 in_code = InCodeState::Rust;
             } else if line == "```" {
                 if in_code == InCodeState::Rust && cfg.for_end_of_block {
